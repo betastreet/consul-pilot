@@ -1,13 +1,8 @@
+const debug = require('debug')('ConsulPilot');
 const Consulite = require('consulite');
-const ContainerPilot = require(process.env.CONTAINERPILOT_PATH);
 
 const _ = {};
 
-// process intercetor
-process.on('SIGHUP', () => {
-    console.log('SIGHUP RECEIVED');
-    _.refreshAllServices()
-});
 
 /**
  * ConsulPilot
@@ -26,12 +21,12 @@ class ConsulPilot {
     }
 
     watch (serviceName, callback) {
-        console.log('ADDING WATCHER', serviceName);
+        debug('ADDING WATCHER', serviceName);
 
         const self = this;
 
         if (!self._services[serviceName]) {
-            console.log('SERVICE:', serviceName, 'NOT DEFINED, CREATING');
+            debug('SERVICE:', serviceName, 'NOT DEFINED, CREATING');
             self._services[serviceName] = {};
         }
 
@@ -48,28 +43,31 @@ module.exports = new ConsulPilot();
 
 
 _.refreshAllServices = () => {
-    console.log('REFRESHING ALL SERVICES');
+    debug('REFRESHING ALL SERVICES');
 
     const self = module.exports;
     const services = self._services;
 
-    Object.keys(services).map(serviceName => _.refreshService(serviceName));
+    return Promise.all(
+        Object.keys(services)
+            .map(serviceName => _.refreshService(serviceName))
+    );
 }
 
 
 _.refreshService = (serviceName) => {
-    console.log('REFRESHING SERVICE:', serviceName, module.exports._services[serviceName]);
+    debug('REFRESHING SERVICE:', serviceName, module.exports._services[serviceName]);
 
     const service = module.exports._services[serviceName];
 
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         Consulite.refreshService(serviceName)
             .then(results => {
                 const consulService = results[0];
-                console.log('RECEIVED NEW INFORMATION', serviceName, consulService);
+                debug('RECEIVED NEW INFORMATION', serviceName, consulService);
 
                 if (consulService && consulService.address !== service.address) {
-                    console.log('SERVICE:', serviceName, 'HAS NEW ADDRESS');
+                    debug('SERVICE:', serviceName, 'HAS NEW ADDRESS');
                     service.address = consulService.address;
                     service.port = consulService.port;
 
@@ -79,23 +77,39 @@ _.refreshService = (serviceName) => {
                 return resolve(service);
             })
             .catch(err => {
-                console.log('SERVICE NOT FOUND', serviceName, err);
+                debug('SERVICE NOT FOUND', serviceName, err);
                 service.address = null;
                 service.port = null;
 
                 _.update(null, serviceName);
 
-                return resolve(service);
+                return reject(service);
             });
     });
 }
 
 
 _.update = (err, serviceName) => {
-    console.log('CALLING:', serviceName, 'CALLBACK');
+    debug('CALLING:', serviceName, 'CALLBACK');
 
     const service = module.exports._services[serviceName];
 
     return service.callback(err, { address: service.address, port: service.port });
 }
 
+
+_.signal = () => {
+     debug('SIGHUP RECEIVED');
+    return _.refreshAllServices();
+}
+
+
+// process intercetor
+process.on('SIGHUP', _.signal);
+
+
+
+// expose everything for the tests
+if (process.env.NODE_ENV === 'test') {
+    module.exports._ = _;
+}
