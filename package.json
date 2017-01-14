@@ -21,6 +21,8 @@
     "jest": "^18.1.0"
   },
   "jest": {
+    "bail": true,
+    "verbose": false,
     "collectCoverage": true
   }
 }
