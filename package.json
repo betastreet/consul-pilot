@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test jest --watch"
+    "test": "NODE_ENV=test jest"
   },
   "repository": { 
     "type" : "git",
@@ -21,8 +21,6 @@
     "jest": "^18.1.0"
   },
   "jest": {
-    "bail": true,
-    "verbose": false,
     "collectCoverage": true
   }
 }
