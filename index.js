@@ -66,7 +66,7 @@ _.refreshService = (serviceName) => {
                 const consulService = results[0];
                 debug('RECEIVED NEW INFORMATION', serviceName, consulService);
 
-                if (consulService && consulService.address !== service.address) {
+                if (consulService && consulService.address && consulService.address !== service.address) {
                     debug('SERVICE:', serviceName, 'HAS NEW ADDRESS');
                     service.address = consulService.address;
                     service.port = consulService.port;
