@@ -83,7 +83,7 @@ _.refreshService = (serviceName) => {
 
                 _.update(null, serviceName);
 
-                return reject({ error: 'SERVICE_NOT_FOUND', serviceName });
+                return reject(Object.assign(service, { error: 'SERVICE_NOT_FOUND', serviceName }));
             });
     });
 }
