@@ -88,7 +88,6 @@ _.refreshService = (serviceName) => {
     });
 }
 
-
 _.update = (err, serviceName) => {
     debug('CALLING:', serviceName, 'CALLBACK');
 
@@ -97,7 +96,6 @@ _.update = (err, serviceName) => {
     return service.callback(err, { address: service.address, port: service.port });
 }
 
-
 _.signal = () => {
     debug('SIGHUP RECEIVED');
     return _.refreshAllServices().catch((err) => {
@@ -105,10 +103,8 @@ _.signal = () => {
     });
 }
 
-
 // process intercetor
 process.on('SIGHUP', _.signal);
-
 
 
 // expose everything for the tests
