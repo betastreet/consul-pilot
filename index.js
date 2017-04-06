@@ -83,11 +83,10 @@ _.refreshService = (serviceName) => {
 
                 _.update(null, serviceName);
 
-                return reject(service);
+                return reject(Object.assign(service, { error: 'SERVICE_NOT_FOUND', serviceName }));
             });
     });
 }
-
 
 _.update = (err, serviceName) => {
     debug('CALLING:', serviceName, 'CALLBACK');
@@ -97,16 +96,15 @@ _.update = (err, serviceName) => {
     return service.callback(err, { address: service.address, port: service.port });
 }
 
-
 _.signal = () => {
-     debug('SIGHUP RECEIVED');
-    return _.refreshAllServices();
+    debug('SIGHUP RECEIVED');
+    return _.refreshAllServices().catch((err) => {
+        console.log('error consul-pilot:', err);
+    });
 }
-
 
 // process intercetor
 process.on('SIGHUP', _.signal);
-
 
 
 // expose everything for the tests
