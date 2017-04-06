@@ -83,7 +83,7 @@ _.refreshService = (serviceName) => {
 
                 _.update(null, serviceName);
 
-                return reject(service);
+                return reject({ error: 'SERVICE_NOT_FOUND', serviceName });
             });
     });
 }
@@ -99,8 +99,10 @@ _.update = (err, serviceName) => {
 
 
 _.signal = () => {
-     debug('SIGHUP RECEIVED');
-    return _.refreshAllServices();
+    debug('SIGHUP RECEIVED');
+    return _.refreshAllServices().catch((err) => {
+        console.log('error consul-pilot:', err);
+    });
 }
 
 
